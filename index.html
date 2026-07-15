@@ -1,1176 +1,385 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PhotonLab — Interactive Physics Simulations</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>PhotonLab (Simple) — Snell's Law Simulator</title>
+
 <style>
-/* ============================= TOKENS ============================= */
-:root[data-theme="dark"]{
-  --void:#0A0B14; --void-2:#0D0F1B;
-  --surface: rgba(255,255,255,.045); --surface-solid:#12131F;
-  --surface-strong: rgba(255,255,255,.075);
-  --border: rgba(255,255,255,.09); --border-strong: rgba(255,255,255,.16);
-  --ink:#E8ECFF; --ink-dim: rgba(232,236,255,.62); --ink-faint: rgba(232,236,255,.36);
-  --incident:#FF5B54; --incident-glow: rgba(255,91,84,.55);
-  --refracted:#5B8CFF; --refracted-glow: rgba(91,140,255,.55);
-  --tir:#FFB84D; --tir-glow: rgba(255,184,77,.55);
-  --air:#8B93B8; --water:#5B8CFF; --glass:#7DD3FC; --diamond:#F4F6FF; --custom:#FFB84D;
-  --shadow: 0 20px 60px rgba(0,0,0,.5);
-}
-:root[data-theme="light"]{
-  --void:#F3F4FA; --void-2:#EAECF6;
-  --surface: rgba(10,11,20,.04); --surface-solid:#FFFFFF;
-  --surface-strong: rgba(10,11,20,.07);
-  --border: rgba(10,11,20,.10); --border-strong: rgba(10,11,20,.2);
-  --ink:#0B0D17; --ink-dim: rgba(11,13,23,.62); --ink-faint: rgba(11,13,23,.4);
-  --incident:#E2453F; --incident-glow: rgba(226,69,63,.35);
-  --refracted:#3A63D6; --refracted-glow: rgba(58,99,214,.35);
-  --tir:#C9791A; --tir-glow: rgba(201,121,26,.35);
-  --air:#6E7699; --water:#3A63D6; --glass:#0EA5C4; --diamond:#0B0D17; --custom:#C9791A;
-  --shadow: 0 20px 60px rgba(20,20,40,.12);
-}
-*{box-sizing:border-box; margin:0; padding:0;}
-html{scroll-behavior:smooth;}
-body{
-  background:var(--void); color:var(--ink);
-  font-family:'Inter',sans-serif; overflow-x:hidden;
-  transition: background .5s ease, color .5s ease;
-}
-.mono{font-family:'JetBrains Mono',monospace;}
-.display{font-family:'Space Grotesk',sans-serif;}
-::selection{background:var(--refracted); color:#fff;}
-a{color:inherit; text-decoration:none;}
-button{font-family:inherit; cursor:pointer;}
-::-webkit-scrollbar{width:10px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:10px;}
+  /* ---------- BASIC PAGE STYLE ---------- */
+  body {
+    background: #0a0b14;      /* dark background */
+    color: #e8ecff;           /* light text */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
 
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
-}
+  h1 {
+    text-align: center;
+    margin-bottom: 4px;
+  }
 
-/* ============================= NAV ============================= */
-nav{
-  position:fixed; top:0; left:0; right:0; z-index:100;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:18px 5vw;
-  background: color-mix(in srgb, var(--void) 60%, transparent);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-bottom:1px solid var(--border);
-  transition: background .5s ease, border-color .5s ease;
-}
-.nav-logo{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.05rem; letter-spacing:.01em;}
-.nav-logo .dot{width:9px; height:9px; border-radius:50%; background:var(--incident); box-shadow:0 0 12px var(--incident-glow); animation: pulse-dot 2.4s ease-in-out infinite;}
-@keyframes pulse-dot{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.5; transform:scale(1.3);}}
-.nav-links{display:flex; align-items:center; gap:28px;}
-.nav-links a{font-size:.86rem; color:var(--ink-dim); font-weight:500; position:relative; padding:4px 0; transition:color .25s;}
-.nav-links a:hover{color:var(--ink);}
-.nav-links a::after{content:''; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--refracted); transition:width .3s ease;}
-.nav-links a:hover::after{width:100%;}
-.theme-toggle{
-  width:38px; height:38px; border-radius:50%; border:1px solid var(--border);
-  background:var(--surface); display:flex; align-items:center; justify-content:center;
-  color:var(--ink); transition: all .3s ease;
-}
-.theme-toggle:hover{border-color:var(--border-strong); transform:rotate(20deg);}
-.theme-toggle svg{width:16px; height:16px;}
-.nav-cta{
-  padding:9px 18px; border-radius:100px; font-size:.82rem; font-weight:600;
-  background:var(--ink); color:var(--void); border:none;
-  transition: all .25s ease;
-}
-.nav-cta:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.3);}
+  p.subtitle {
+    text-align: center;
+    color: #9ba3c9;
+    margin-top: 0;
+    margin-bottom: 30px;
+  }
 
-/* ============================= HERO ============================= */
-.hero{
-  position:relative; height:100vh; min-height:640px; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; text-align:center; overflow:hidden;
-}
-#hero-canvas{position:absolute; inset:0; width:100%; height:100%; display:block;}
-.hero-content{position:relative; z-index:2; padding:0 24px;}
-.hero-eyebrow{
-  font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
-  color:var(--ink-faint); margin-bottom:22px; opacity:0; animation: rise .9s ease forwards .1s;
-}
-.hero-title{
-  font-family:'Space Grotesk',sans-serif; font-weight:700;
-  font-size:clamp(3.2rem, 10vw, 7.5rem); line-height:.95; letter-spacing:-.02em;
-  background: linear-gradient(120deg, var(--ink) 30%, var(--refracted) 70%, var(--incident) 100%);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  background-size:200% auto;
-  opacity:0; animation: rise 1s ease forwards .25s, shine 6s linear infinite 1.2s;
-}
-@keyframes shine{ to{ background-position:200% center; } }
-.hero-sub{
-  margin-top:20px; font-size:clamp(1rem,2.2vw,1.25rem); color:var(--ink-dim); font-weight:400;
-  opacity:0; animation: rise .9s ease forwards .45s;
-}
-.hero-cta{
-  margin-top:44px; display:inline-flex; align-items:center; gap:10px;
-  padding:15px 30px; border-radius:100px; border:none;
-  background:linear-gradient(90deg, var(--incident), var(--refracted));
-  color:#fff; font-weight:600; font-size:.95rem; letter-spacing:.01em;
-  box-shadow:0 10px 40px var(--refracted-glow);
-  opacity:0; animation: rise .9s ease forwards .6s;
-  transition: transform .3s ease, box-shadow .3s ease;
-}
-.hero-cta:hover{transform:translateY(-3px) scale(1.03); box-shadow:0 16px 50px var(--refracted-glow);}
-.hero-cta svg{width:16px; height:16px; transition:transform .3s ease;}
-.hero-cta:hover svg{transform:translateX(4px);}
-@keyframes rise{ from{opacity:0; transform:translateY(24px);} to{opacity:1; transform:translateY(0);} }
-.scroll-cue{
-  position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2;
-  display:flex; flex-direction:column; align-items:center; gap:8px;
-  color:var(--ink-faint); font-family:'JetBrains Mono',monospace; font-size:.68rem; letter-spacing:.15em;
-  opacity:0; animation: rise .9s ease forwards .9s;
-}
-.scroll-cue .line{width:1px; height:30px; background:linear-gradient(var(--ink-faint), transparent); animation: scroll-pulse 2s ease-in-out infinite;}
-@keyframes scroll-pulse{0%{opacity:.2;} 50%{opacity:1;} 100%{opacity:.2;}}
+  /* Main layout: controls on the left, diagram + info on the right.
+     On small screens this just stacks into one column. */
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
 
-/* ============================= REVEAL ============================= */
-.reveal{opacity:0; transform:translateY(36px); transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1);}
-.reveal.is-visible{opacity:1; transform:translateY(0);}
-.reveal-stagger.is-visible > *{opacity:1; transform:translateY(0);}
-.reveal-stagger > *{opacity:0; transform:translateY(28px); transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);}
-.reveal-stagger > *:nth-child(1){transition-delay:.05s;} .reveal-stagger > *:nth-child(2){transition-delay:.15s;}
-.reveal-stagger > *:nth-child(3){transition-delay:.25s;} .reveal-stagger > *:nth-child(4){transition-delay:.35s;}
+  .panel {
+    background: #161826;
+    border: 1px solid #2a2d42;
+    border-radius: 12px;
+    padding: 20px;
+  }
 
-/* ============================= SECTIONS ============================= */
-section{padding:110px 5vw;}
-.section-head{max-width:640px; margin:0 auto 60px; text-align:center;}
-.section-eyebrow{font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--refracted); margin-bottom:14px;}
-.section-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:clamp(1.8rem,4vw,2.6rem); letter-spacing:-.01em;}
-.section-desc{margin-top:14px; color:var(--ink-dim); font-size:1rem; line-height:1.6;}
+  #controls {
+    flex: 1 1 260px;
+  }
 
-/* how it works */
-.steps{max-width:980px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
-.step-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px 26px;
-  transition: transform .35s ease, border-color .35s ease, background .35s ease;
-}
-.step-card:hover{transform:translateY(-6px); border-color:var(--border-strong); background:var(--surface-strong);}
-.step-num{font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--ink-faint); letter-spacing:.1em;}
-.step-title{font-family:'Space Grotesk',sans-serif; font-size:1.15rem; font-weight:600; margin:14px 0 10px;}
-.step-desc{color:var(--ink-dim); font-size:.9rem; line-height:1.55;}
+  #diagram-panel {
+    flex: 2 1 400px;
+  }
 
-/* media cards */
-.media-grid{max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
-.media-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px 22px;
-  position:relative; overflow:hidden; transition: transform .35s ease, border-color .35s ease;
-}
-.media-card:hover{transform:translateY(-6px); border-color:var(--mc-color);}
-.media-card .glow{position:absolute; width:120px; height:120px; border-radius:50%; filter:blur(50px); opacity:.35; top:-30px; right:-30px; background:var(--mc-color);}
-.media-card svg{width:30px; height:30px; color:var(--mc-color); position:relative; z-index:1;}
-.media-name{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.15rem; margin-top:18px; position:relative; z-index:1;}
-.media-n{font-family:'JetBrains Mono',monospace; font-size:2.1rem; font-weight:600; color:var(--mc-color); margin-top:6px; position:relative; z-index:1;}
-.media-desc{font-size:.82rem; color:var(--ink-faint); margin-top:10px; line-height:1.5; position:relative; z-index:1;}
-.media-card{cursor:pointer;}
-.media-card:focus-visible{outline:2px solid var(--mc-color); outline-offset:3px;}
-.media-hint{
-  margin-top:16px; font-size:.72rem; font-weight:600; letter-spacing:.03em; color:var(--mc-color);
-  display:flex; align-items:center; gap:6px; position:relative; z-index:1; opacity:.75; transition: gap .25s ease, opacity .25s ease;
-}
-.media-hint svg{width:12px; height:12px; transition:transform .25s ease;}
-.media-card:hover .media-hint{opacity:1; gap:9px;}
-.media-card:hover .media-hint svg{transform:translateX(2px);}
+  #info-panel {
+    flex: 1 1 260px;
+  }
 
-/* ============================= INFO MODAL ============================= */
-.info-modal{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:24px; pointer-events:none;}
-.info-modal.open{pointer-events:auto;}
-.info-modal-backdrop{
-  position:absolute; inset:0; background: color-mix(in srgb, var(--void) 70%, transparent);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  opacity:0; transition: opacity .35s ease;
-}
-.info-modal.open .info-modal-backdrop{opacity:1;}
-.info-modal-card{
-  position:relative; width:100%; max-width:460px; max-height:85vh; overflow-y:auto;
-  background:var(--surface-solid); border:1px solid var(--border-strong); border-radius:24px;
-  box-shadow:0 30px 80px rgba(0,0,0,.55); padding:34px 30px 28px;
-  transform:scale(.92) translateY(14px); opacity:0;
-  transition: transform .4s cubic-bezier(.22,1.4,.36,1), opacity .3s ease;
-}
-.info-modal.open .info-modal-card{transform:scale(1) translateY(0); opacity:1;}
-.info-modal-close{
-  position:absolute; top:18px; right:18px; width:32px; height:32px; border-radius:50%;
-  border:1px solid var(--border); background:var(--surface); color:var(--ink-dim);
-  display:flex; align-items:center; justify-content:center; transition: all .25s ease;
-}
-.info-modal-close:hover{color:var(--ink); border-color:var(--border-strong); transform:rotate(90deg);}
-.info-modal-close svg{width:14px; height:14px;}
-.info-modal-icon{
-  width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center;
-  background: color-mix(in srgb, var(--mc-color, var(--refracted)) 16%, transparent);
-  color:var(--mc-color, var(--refracted)); margin-bottom:18px;
-}
-.info-modal-icon svg{width:26px; height:26px;}
-.info-modal-name{font-size:1.5rem; font-weight:600;}
-.info-modal-n{font-size:2.6rem; font-weight:600; color:var(--mc-color, var(--refracted)); margin-top:2px; margin-bottom:22px;}
-.info-modal-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px;}
-.info-stat{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px;}
-.info-stat-label{font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:6px;}
-.info-stat-value{font-size:1rem; font-weight:600;}
-.info-modal-facts{display:flex; flex-direction:column; gap:14px; margin-bottom:22px;}
-.info-fact{display:flex; gap:12px; align-items:flex-start;}
-.info-fact-mark{
-  flex-shrink:0; width:22px; height:22px; border-radius:7px; margin-top:1px;
-  background: color-mix(in srgb, var(--mc-color, var(--refracted)) 18%, transparent);
-  color:var(--mc-color, var(--refracted)); display:flex; align-items:center; justify-content:center;
-  font-family:'JetBrains Mono',monospace; font-size:.66rem; font-weight:700;
-}
-.info-fact-text{font-size:.87rem; line-height:1.6; color:var(--ink-dim);}
-.info-fact-text strong{color:var(--ink); font-weight:600;}
-.info-modal-formula{
-  text-align:center; font-size:.8rem; color:var(--ink-faint); padding-top:16px; border-top:1px solid var(--border);
-}
-@media (max-width:480px){
-  .info-modal-card{padding:28px 20px 22px; border-radius:20px;}
-  .info-modal-n{font-size:2.1rem;}
-}
+  label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: #9ba3c9;
+  }
 
-/* ============================= SIMULATOR ============================= */
-#simulator{padding-top:100px;}
-.sim-shell{
-  max-width:1400px; margin:0 auto;
-  display:grid; grid-template-columns:300px 1fr 320px; gap:20px;
-  grid-template-areas: "controls viz equation";
-}
-.panel{
-  background:var(--surface); border:1px solid var(--border); border-radius:22px;
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  box-shadow:var(--shadow); display:flex; flex-direction:column; overflow:hidden;
-  transition: border-color .4s ease, background .4s ease;
-}
-.panel-head{padding:20px 22px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;}
-.panel-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:.98rem; display:flex; align-items:center; gap:8px;}
-.panel-title svg{width:16px; height:16px; color:var(--refracted);}
-.panel-body{padding:20px 22px; flex:1; display:flex; flex-direction:column; gap:20px; overflow-y:auto;}
+  select, input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    background: #0f1120;
+    color: #e8ecff;
+    border: 1px solid #2a2d42;
+    border-radius: 6px;
+  }
 
-/* controls */
-#controls{grid-area:controls;}
-.field label{display:block; font-size:.74rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; font-weight:600;}
-.select-wrap{position:relative;}
-select{
-  width:100%; padding:12px 38px 12px 14px; border-radius:12px; border:1px solid var(--border);
-  background:var(--surface-solid); color:var(--ink); font-family:'Inter',sans-serif; font-size:.9rem;
-  appearance:none; -webkit-appearance:none; cursor:pointer; transition:border-color .25s ease, box-shadow .25s ease;
-}
-select:hover, select:focus{border-color:var(--refracted); outline:none; box-shadow:0 0 0 3px var(--refracted-glow);}
-.select-wrap svg{position:absolute; right:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--ink-faint); pointer-events:none; transition:transform .25s ease;}
-.custom-n{
-  margin-top:8px; max-height:0; opacity:0; overflow:hidden; transition: max-height .35s ease, opacity .35s ease, margin-top .35s ease;
-}
-.custom-n.open{max-height:60px; opacity:1;}
-.custom-n input{
-  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-solid);
-  color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:.9rem;
-}
-.custom-n input:focus{outline:none; border-color:var(--custom); box-shadow:0 0 0 3px rgba(255,184,77,.25);}
+  input[type="range"] {
+    width: 100%;
+  }
 
-.slider-row{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;}
-.slider-val{font-family:'JetBrains Mono',monospace; font-size:1.4rem; font-weight:600; color:var(--incident); transition:color .3s ease;}
-.slider-val.tir{color:var(--tir);}
-input[type=range]{
-  -webkit-appearance:none; width:100%; height:4px; border-radius:4px;
-  background:linear-gradient(90deg, var(--incident) 0%, var(--incident) var(--pct,33%), var(--border) var(--pct,33%), var(--border) 100%);
-}
-input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--incident);
-  box-shadow:0 0 12px var(--incident-glow), 0 0 0 4px var(--void); cursor:pointer; transition: transform .2s ease;
-}
-input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
-input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; background:var(--incident); border:none; box-shadow:0 0 12px var(--incident-glow);}
+  #angleValue {
+    font-weight: bold;
+    color: #ff5b54;
+  }
 
-.preset-grid{display:flex; flex-direction:column; gap:8px;}
-.preset-btn{
-  text-align:left; padding:10px 14px; border-radius:12px; border:1px solid var(--border);
-  background:var(--surface-solid); color:var(--ink-dim); font-size:.82rem; font-weight:500;
-  transition: all .25s ease; display:flex; align-items:center; justify-content:space-between;
-}
-.preset-btn:hover{border-color:var(--refracted); color:var(--ink); background:var(--surface-strong); transform:translateX(3px);}
-.preset-btn svg{width:13px; height:13px; opacity:.5;}
-.reset-btn{
-  margin-top:auto; padding:12px; border-radius:12px; border:1px solid var(--border); background:transparent;
-  color:var(--ink-faint); font-size:.82rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;
-  transition: all .25s ease;
-}
-.reset-btn:hover{color:var(--ink); border-color:var(--border-strong); background:var(--surface);}
-.reset-btn svg{width:14px; height:14px;}
+  .preset-buttons button {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: #0f1120;
+    color: #e8ecff;
+    border: 1px solid #2a2d42;
+    border-radius: 6px;
+    cursor: pointer;
+  }
 
-/* viz */
-#viz{grid-area:viz; position:relative;}
-.viz-tools{display:flex; gap:8px;}
-.tool-btn{
-  width:32px; height:32px; border-radius:9px; border:1px solid var(--border); background:var(--surface-solid);
-  color:var(--ink-dim); display:flex; align-items:center; justify-content:center; transition: all .25s ease;
-}
-.tool-btn:hover{color:var(--ink); border-color:var(--refracted);}
-.tool-btn svg{width:15px; height:15px;}
-.viz-canvas-wrap{flex:1; position:relative; min-height:380px;}
-#ray-canvas{position:absolute; inset:0; width:100%; height:100%; display:block;}
-.tir-banner{
-  position:absolute; top:16px; left:50%; transform:translateX(-50%) translateY(-140%); z-index:3;
-  background: color-mix(in srgb, var(--tir) 18%, var(--surface-solid));
-  border:1px solid var(--tir); color:var(--tir); padding:9px 18px; border-radius:100px;
-  font-family:'JetBrains Mono',monospace; font-size:.76rem; font-weight:600; letter-spacing:.05em;
-  display:flex; align-items:center; gap:8px; box-shadow:0 8px 30px var(--tir-glow);
-  transition: transform .45s cubic-bezier(.34,1.56,.64,1), opacity .35s ease; opacity:0;
-}
-.tir-banner.show{transform:translateX(-50%) translateY(0); opacity:1;}
-.tir-banner svg{width:14px; height:14px; animation:blink-warn 1.2s ease-in-out infinite;}
-@keyframes blink-warn{0%,100%{opacity:1;} 50%{opacity:.4;}}
+  .preset-buttons button:hover {
+    border-color: #5b8cff;
+  }
 
-/* equation / explanation */
-#equation{grid-area:equation;}
-.eq-display{
-  background:var(--surface-solid); border:1px solid var(--border); border-radius:16px; padding:20px;
-  text-align:center; font-family:'JetBrains Mono',monospace;
-}
-.eq-law{font-size:1.05rem; color:var(--ink-dim); letter-spacing:.02em;}
-.eq-law .n{color:var(--refracted); font-weight:600;}
-.eq-law .n2{color:var(--incident); font-weight:600;}
-.eq-divider{height:1px; background:var(--border); margin:16px 0;}
-.eq-live{font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--ink-faint); margin-bottom:10px;}
-.eq-calc{font-size:1.15rem; font-weight:600; line-height:1.6;}
-.eq-calc span{display:inline-block; transition: color .3s ease;}
-.eq-calc .val-incident{color:var(--incident);}
-.eq-calc .val-refracted{color:var(--refracted);}
-.eq-calc .val-tir{color:var(--tir);}
+  #reset {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid #2a2d42;
+    color: #e8ecff;
+    border-radius: 6px;
+    cursor: pointer;
+  }
 
-.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-.stat-box{background:var(--surface-solid); border:1px solid var(--border); border-radius:12px; padding:12px 14px;}
-.stat-label{font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:6px;}
-.stat-value{font-family:'JetBrains Mono',monospace; font-size:1.15rem; font-weight:600;}
+  canvas {
+    width: 100%;
+    height: 350px;
+    background: #0f1120;
+    border-radius: 8px;
+    display: block;
+  }
 
-.explain-box{
-  background:var(--surface-solid); border:1px solid var(--border); border-radius:16px; padding:18px;
-  font-size:.86rem; line-height:1.65; color:var(--ink-dim); flex:1;
-}
-.explain-box strong{color:var(--ink); font-weight:600;}
-.explain-title{font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--ink-faint); margin-bottom:10px; display:flex; align-items:center; gap:6px;}
-.explain-title svg{width:12px; height:12px;}
+  #tirWarning {
+    display: none;              /* hidden unless total internal reflection happens */
+    margin-top: 10px;
+    padding: 10px;
+    background: #3a2a10;
+    border: 1px solid #ffb84d;
+    color: #ffb84d;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+  }
 
-/* footer */
-footer{padding:50px 5vw; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;}
-.footer-brand{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:600;}
-.footer-brand .dot{width:7px; height:7px; border-radius:50%; background:var(--incident);}
-.footer-note{font-size:.8rem; color:var(--ink-faint);}
+  #equation {
+    margin-top: 20px;
+    font-family: monospace;
+    font-size: 1.1rem;
+    text-align: center;
+    background: #0f1120;
+    padding: 14px;
+    border-radius: 8px;
+  }
 
-/* ============================= RESPONSIVE ============================= */
-@media (max-width:1100px){
-  .sim-shell{grid-template-columns:1fr; grid-template-areas:"viz" "controls" "equation";}
-  #viz .viz-canvas-wrap{min-height:340px;}
-  .steps{grid-template-columns:1fr;}
-  .media-grid{grid-template-columns:repeat(2,1fr);}
-}
-@media (max-width:640px){
-  .nav-links{display:none;}
-  section{padding:80px 6vw;}
-  .media-grid{grid-template-columns:1fr 1fr; gap:12px;}
-  .panel-body{padding:16px;}
-}
+  #explanation {
+    margin-top: 20px;
+    line-height: 1.6;
+    color: #c7cbe8;
+  }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo"><span class="dot"></span>PhotonLab</div>
-  <div class="nav-links">
-    <a href="#top">Home</a>
-    <a href="#how">How it works</a>
-    <a href="#media">Media</a>
-    <a href="#simulator">Simulator</a>
-  </div>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
-      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-    </button>
-    <a href="#simulator"><button class="nav-cta">Launch Simulator</button></a>
-  </div>
-</nav>
+<h1>PhotonLab</h1>
+<p class="subtitle">A simple Snell's Law simulator</p>
 
-<section class="hero" id="top">
-  <canvas id="hero-canvas"></canvas>
-  <div class="hero-content">
-    <div class="hero-eyebrow">n₁ sin(θ₁) = n₂ sin(θ₂)</div>
-    <h1 class="hero-title">PhotonLab</h1>
-    <p class="hero-sub">Interactive Physics Simulations</p>
-    <a href="#simulator"><button class="hero-cta">Launch Simulator
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-    </button></a>
-  </div>
-  <div class="scroll-cue"><span>SCROLL</span><span class="line"></span></div>
-</section>
+<div class="container">
 
-<section id="how">
-  <div class="section-head reveal">
-    <div class="section-eyebrow">The physics</div>
-    <h2 class="section-title">Why light bends</h2>
-    <p class="section-desc">Every refraction follows the same three-step story. Change the medium or angle in the simulator below and watch it play out in real time.</p>
-  </div>
-  <div class="steps reveal-stagger">
-    <div class="step-card">
-      <div class="step-num mono">01 — CONTACT</div>
-      <div class="step-title">Light meets a boundary</div>
-      <div class="step-desc">A ray travelling through one medium arrives at the surface of another — air into water, air into glass, glass into diamond.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num mono">02 — SPEED CHANGE</div>
-      <div class="step-title">Its speed changes</div>
-      <div class="step-desc">Denser media slow light down. The ratio of the two speeds is exactly the ratio of refractive indices, n₂/n₁.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num mono">03 — BENDING</div>
-      <div class="step-title">The path bends</div>
-      <div class="step-desc">To conserve the wavefront, the ray changes direction — toward the normal entering a denser medium, away from it entering a lighter one.</div>
-    </div>
-  </div>
-</section>
+  <!-- ============ LEFT: CONTROLS ============ -->
+  <div class="panel" id="controls">
+    <h3>Controls</h3>
 
-<section id="media">
-  <div class="section-head reveal">
-    <div class="section-eyebrow">Reference</div>
-    <h2 class="section-title">Refractive indices</h2>
-    <p class="section-desc">The four media available in the simulator, each with its real-world index of refraction at visible-light wavelengths.</p>
-  </div>
-  <div class="media-grid reveal-stagger">
-    <div class="media-card" data-key="air" style="--mc-color:var(--air)" tabindex="0" role="button" aria-label="Learn more about Air">
-      <div class="glow"></div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h13a3 3 0 1 0-3-3"></path><path d="M3 16h16a3 3 0 1 1-3 3"></path></svg>
-      <div class="media-name">Air</div>
-      <div class="media-n">1.00</div>
-      <div class="media-desc">The baseline medium. Light travels through air at essentially its vacuum speed.</div>
-      <div class="media-hint">Tap to learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
-    </div>
-    <div class="media-card" data-key="water" style="--mc-color:var(--water)" tabindex="0" role="button" aria-label="Learn more about Water">
-      <div class="glow"></div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s7 8.5 7 13a7 7 0 1 1-14 0c0-4.5 7-13 7-13z"></path></svg>
-      <div class="media-name">Water</div>
-      <div class="media-n">1.33</div>
-      <div class="media-desc">Light slows to about 75% of its air speed — the classic straw-in-a-glass bend.</div>
-      <div class="media-hint">Tap to learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
-    </div>
-    <div class="media-card" data-key="glass" style="--mc-color:var(--glass)" tabindex="0" role="button" aria-label="Learn more about Glass">
-      <div class="glow"></div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 4l16 16"></path></svg>
-      <div class="media-name">Glass</div>
-      <div class="media-n">1.52</div>
-      <div class="media-desc">Ordinary crown glass — dense enough for lenses and prisms to split white light.</div>
-      <div class="media-hint">Tap to learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
-    </div>
-    <div class="media-card" data-key="diamond" style="--mc-color:var(--diamond)" tabindex="0" role="button" aria-label="Learn more about Diamond">
-      <div class="glow"></div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M2 9h20M9 3l3 6-3 12M15 3l-3 6 3 12"></path></svg>
-      <div class="media-name">Diamond</div>
-      <div class="media-n">2.42</div>
-      <div class="media-desc">One of the highest natural indices — why diamonds trap and scatter so much light.</div>
-      <div class="media-hint">Tap to learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
-    </div>
-  </div>
-</section>
+    <label for="medium1">Medium 1 (incidence)</label>
+    <select id="medium1">
+      <option value="1.00">Air (1.00)</option>
+      <option value="1.33">Water (1.33)</option>
+      <option value="1.52">Glass (1.52)</option>
+      <option value="2.42">Diamond (2.42)</option>
+    </select>
 
-<!-- INFO MODAL -->
-<div class="info-modal" id="info-modal" aria-hidden="true">
-  <div class="info-modal-backdrop" id="info-modal-backdrop"></div>
-  <div class="info-modal-card" id="info-modal-card" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
-    <button class="info-modal-close" id="info-modal-close" aria-label="Close">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-    </button>
-    <div class="info-modal-icon" id="info-modal-icon"></div>
-    <div class="info-modal-name display" id="info-modal-title"></div>
-    <div class="info-modal-n mono" id="info-modal-n"></div>
+    <label for="medium2">Medium 2 (refraction)</label>
+    <select id="medium2">
+      <option value="1.00">Air (1.00)</option>
+      <option value="1.33" selected>Water (1.33)</option>
+      <option value="1.52">Glass (1.52)</option>
+      <option value="2.42">Diamond (2.42)</option>
+    </select>
 
-    <div class="info-modal-stats">
-      <div class="info-stat">
-        <div class="info-stat-label">Speed of light</div>
-        <div class="info-stat-value mono" id="info-modal-speed"></div>
-      </div>
-      <div class="info-stat">
-        <div class="info-stat-label">Critical angle</div>
-        <div class="info-stat-value mono" id="info-modal-critical"></div>
-      </div>
+    <label for="angle">Angle of incidence: <span id="angleValue">30°</span></label>
+    <input type="range" id="angle" min="0" max="89" value="30">
+
+    <label>Presets</label>
+    <div class="preset-buttons">
+      <button onclick="setPreset(1.00, 1.33, 30)">Air → Water</button>
+      <button onclick="setPreset(1.33, 1.00, 30)">Water → Air</button>
+      <button onclick="setPreset(1.00, 1.52, 40)">Air → Glass</button>
+      <button onclick="setPreset(2.42, 1.00, 35)">Diamond → Air (TIR)</button>
     </div>
 
-    <div class="info-modal-facts" id="info-modal-facts"></div>
-
-    <div class="info-modal-formula mono">n = c / v &nbsp;·&nbsp; v = c / n</div>
+    <button id="reset" onclick="setPreset(1.00, 1.33, 30)">Reset</button>
   </div>
+
+  <!-- ============ MIDDLE: RAY DIAGRAM ============ -->
+  <div class="panel" id="diagram-panel">
+    <h3>Ray Diagram</h3>
+    <canvas id="rayCanvas" width="600" height="350"></canvas>
+    <div id="tirWarning">⚠ TOTAL INTERNAL REFLECTION</div>
+  </div>
+
+  <!-- ============ RIGHT: EQUATION + EXPLANATION ============ -->
+  <div class="panel" id="info-panel">
+    <h3>Snell's Law</h3>
+    <div id="equation">n₁ sin(θ₁) = n₂ sin(θ₂)</div>
+    <div id="explanation">Adjust the controls to see how light bends.</div>
+  </div>
+
 </div>
 
-<section id="simulator">
-  <div class="section-head reveal">
-    <div class="section-eyebrow">The lab</div>
-    <h2 class="section-title">Snell's Law Simulator</h2>
-    <p class="section-desc">Choose two media and an angle of incidence. The ray diagram, equation, and explanation update instantly.</p>
-  </div>
-
-  <div class="sim-shell reveal">
-    <!-- CONTROLS -->
-    <div class="panel" id="controls">
-      <div class="panel-head">
-        <div class="panel-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"></path></svg>
-          Controls
-        </div>
-      </div>
-      <div class="panel-body">
-        <div class="field">
-          <label>Medium 1 (incidence)</label>
-          <div class="select-wrap">
-            <select id="medium1">
-              <option value="air">Air</option>
-              <option value="water">Water</option>
-              <option value="glass">Glass</option>
-              <option value="diamond">Diamond</option>
-              <option value="custom">Custom</option>
-            </select>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
-          </div>
-          <div class="custom-n" id="custom1-wrap"><input type="number" id="custom1" step="0.01" min="1" max="4" value="1.00" placeholder="Refractive index n"></div>
-        </div>
-
-        <div class="field">
-          <label>Medium 2 (refraction)</label>
-          <div class="select-wrap">
-            <select id="medium2">
-              <option value="air">Air</option>
-              <option value="water" selected>Water</option>
-              <option value="glass">Glass</option>
-              <option value="diamond">Diamond</option>
-              <option value="custom">Custom</option>
-            </select>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
-          </div>
-          <div class="custom-n" id="custom2-wrap"><input type="number" id="custom2" step="0.01" min="1" max="4" value="1.33" placeholder="Refractive index n"></div>
-        </div>
-
-        <div class="field">
-          <div class="slider-row">
-            <label style="margin:0;">Angle of incidence</label>
-            <span class="slider-val mono" id="angle-val">30°</span>
-          </div>
-          <input type="range" id="angle" min="0" max="89" step="1" value="30">
-        </div>
-
-        <div class="field">
-          <label>Presets</label>
-          <div class="preset-grid">
-            <button class="preset-btn" data-m1="air" data-m2="water" data-angle="30">Air → Water <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
-            <button class="preset-btn" data-m1="water" data-m2="air" data-angle="30">Water → Air <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
-            <button class="preset-btn" data-m1="air" data-m2="glass" data-angle="40">Air → Glass <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
-            <button class="preset-btn" data-m1="glass" data-m2="diamond" data-angle="25">Glass → Diamond <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
-            <button class="preset-btn" data-m1="diamond" data-m2="air" data-angle="35">Diamond → Air <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
-          </div>
-        </div>
-
-        <button class="reset-btn" id="reset-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
-          Reset
-        </button>
-      </div>
-    </div>
-
-    <!-- VISUALIZATION -->
-    <div class="panel" id="viz">
-      <div class="panel-head">
-        <div class="panel-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          Ray Diagram
-        </div>
-        <div class="viz-tools">
-          <button class="tool-btn" id="fullscreen-btn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg></button>
-          <button class="tool-btn" id="export-btn" title="Export PNG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
-        </div>
-      </div>
-      <div class="viz-canvas-wrap" id="viz-wrap">
-        <div class="tir-banner" id="tir-banner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-          TOTAL INTERNAL REFLECTION
-        </div>
-        <canvas id="ray-canvas"></canvas>
-      </div>
-    </div>
-
-    <!-- EQUATION + EXPLANATION -->
-    <div class="panel" id="equation">
-      <div class="panel-head">
-        <div class="panel-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg>
-          Live Equation
-        </div>
-      </div>
-      <div class="panel-body">
-        <div class="eq-display">
-          <div class="eq-law"><span class="n">n₁</span> sin(θ₁) = <span class="n2">n₂</span> sin(θ₂)</div>
-          <div class="eq-divider"></div>
-          <div class="eq-live">Current calculation</div>
-          <div class="eq-calc" id="eq-calc">1.00 × sin(30°) = 1.33 × sin(22.08°)</div>
-        </div>
-
-        <div class="stat-grid">
-          <div class="stat-box"><div class="stat-label">Incidence θ₁</div><div class="stat-value" id="stat-i">30.0°</div></div>
-          <div class="stat-box"><div class="stat-label">Refraction θ₂</div><div class="stat-value" id="stat-r">22.1°</div></div>
-          <div class="stat-box"><div class="stat-label">n₁</div><div class="stat-value" id="stat-n1">1.00</div></div>
-          <div class="stat-box"><div class="stat-label">n₂</div><div class="stat-value" id="stat-n2">1.33</div></div>
-        </div>
-
-        <div class="explain-box">
-          <div class="explain-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
-            What's happening
-          </div>
-          <div id="explain-text">The light enters a denser medium. Its speed decreases, so the ray bends <strong>toward</strong> the normal.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="footer-brand"><span class="dot"></span>PhotonLab</div>
-  <div class="footer-note mono">n₁ sin(θ₁) = n₂ sin(θ₂) — Snell's Law, ~984 CE / 1621</div>
-</footer>
-
 <script>
-(function(){
-'use strict';
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* =====================================================
+     PHYSICS — this matches the original Python logic:
 
-/* ============ THEME ============ */
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
-let theme = 'dark';
-themeToggle.addEventListener('click', ()=>{
-  theme = theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', theme);
-  themeIcon.innerHTML = theme === 'dark'
-    ? '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>'
-    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-});
+     n1 * sin(i) = n2 * sin(r)
+     r = asin( (n1 / n2) * sin(i) )
 
-/* ============ SCROLL REVEAL (fail-safe) ============ */
-const revealTargets = document.querySelectorAll('.reveal, .reveal-stagger');
-if ('IntersectionObserver' in window){
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target);} });
-  },{threshold:0, rootMargin:'0px 0px -10% 0px'});
-  revealTargets.forEach(el=>io.observe(el));
-} else {
-  revealTargets.forEach(el=>el.classList.add('is-visible'));
-}
-// Safety net: some embedded/preview environments scroll a container other than
-// the document, which can silently break IntersectionObserver. Never let content
-// stay invisible for more than a beat.
-setTimeout(()=> revealTargets.forEach(el=>el.classList.add('is-visible')), 900);
+     If (n1/n2) * sin(i) >= 1, there is no valid angle r,
+     so we report Total Internal Reflection instead.
+  ===================================================== */
+  function calculateRefraction(n1, n2, incidenceDeg) {
+    const incidenceRad = incidenceDeg * Math.PI / 180;
+    const ratio = (n1 / n2) * Math.sin(incidenceRad);
 
-/* ============ MEDIA INFO MODAL (exam-focused reference) ============ */
-const C = 299792458; // speed of light in vacuum, m/s
-const MEDIA_INFO = {
-  air:{
-    name:'Air', n:1.00, color:'--air',
-    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h13a3 3 0 1 0-3-3"></path><path d="M3 16h16a3 3 0 1 1-3 3"></path></svg>',
-    critical:'Reference medium',
-    facts:[
-      "Air's refractive index is taken as <strong>exactly 1.00</strong> in most textbook problems — it's the reference point every other medium is compared against.",
-      "Light entering air from a denser medium <strong>speeds up</strong> and bends <strong>away</strong> from the normal.",
-      "Exam tip: if a question doesn't name a starting medium, assume it's air unless stated otherwise."
-    ]
-  },
-  water:{
-    name:'Water', n:1.33, color:'--water',
-    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s7 8.5 7 13a7 7 0 1 1-14 0c0-4.5 7-13 7-13z"></path></svg>',
-    facts:[
-      "A pool always <strong>looks shallower</strong> than it really is — refraction at the water-air surface reduces the apparent depth. A classic exam question: 'why does a stick look bent in water?'",
-      "The <strong>critical angle</strong> (water → air) is about 48.8°. Past this angle, light inside water totally internally reflects — that's the silvery, mirror-like underside you see looking up from beneath the surface.",
-      "Water droplets refracting and internally reflecting sunlight is exactly how a <strong>rainbow</strong> forms."
-    ]
-  },
-  glass:{
-    name:'Glass', n:1.52, color:'--glass',
-    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 4l16 16"></path></svg>',
-    facts:[
-      "Glass prisms split white light into a spectrum (<strong>dispersion</strong>) because red, green and violet light each refract by a slightly different amount.",
-      "The <strong>critical angle</strong> (glass → air) is about 41.1°. This is exploited in periscopes and binoculars, which use prisms instead of mirrors.",
-      "Camera lenses, spectacles and microscopes all rely on this same n ≈ 1.5 refraction to focus light precisely."
-    ]
-  },
-  diamond:{
-    name:'Diamond', n:2.42, color:'--diamond',
-    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M2 9h20M9 3l3 6-3 12M15 3l-3 6 3 12"></path></svg>',
-    facts:[
-      "Diamond has one of the highest common refractive indices, giving it exceptional <strong>brilliance and 'fire'</strong>.",
-      "Its <strong>critical angle</strong> is only about 24.4° — the smallest of these four media. Light entering a diamond is very likely to strike a facet steeper than that angle and totally internally reflect, bouncing repeatedly before it escapes as sparkle.",
-      "Diamond cutters angle facets precisely around this critical angle to <strong>maximise total internal reflection</strong> — the entire craft of a 'brilliant cut' is applied Snell's Law."
-    ]
-  }
-};
+    if (ratio >= 1) {
+      return { tir: true, refractionDeg: null };
+    }
 
-const modal = document.getElementById('info-modal');
-const modalCard = document.getElementById('info-modal-card');
-let lastFocused = null;
-
-function openInfoModal(key){
-  const d = MEDIA_INFO[key];
-  if (!d) return;
-  lastFocused = document.activeElement;
-  modalCard.style.setProperty('--mc-color', `var(${d.color})`);
-  document.getElementById('info-modal-icon').innerHTML = d.icon;
-  document.getElementById('info-modal-title').textContent = d.name;
-  document.getElementById('info-modal-n').textContent = 'n = ' + d.n.toFixed(2);
-  const v = C / d.n;
-  document.getElementById('info-modal-speed').textContent = (v/1e8).toFixed(2) + ' × 10⁸ m/s';
-  document.getElementById('info-modal-critical').textContent = d.critical
-    ? d.critical
-    : Math.asin(1/d.n)*180/Math.PI < 90
-      ? (Math.asin(1/d.n)*180/Math.PI).toFixed(1) + '° (→ air)'
-      : '—';
-  document.getElementById('info-modal-facts').innerHTML = d.facts.map((f,i)=>
-    `<div class="info-fact"><div class="info-fact-mark">${String(i+1).padStart(2,'0')}</div><div class="info-fact-text">${f}</div></div>`
-  ).join('');
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden','false');
-  document.body.style.overflow = 'hidden';
-  document.getElementById('info-modal-close').focus();
-}
-function closeInfoModal(){
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden','true');
-  document.body.style.overflow = '';
-  if (lastFocused) lastFocused.focus();
-}
-document.querySelectorAll('.media-card').forEach(card=>{
-  card.addEventListener('click', ()=> openInfoModal(card.dataset.key));
-  card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openInfoModal(card.dataset.key);} });
-});
-document.getElementById('info-modal-close').addEventListener('click', closeInfoModal);
-document.getElementById('info-modal-backdrop').addEventListener('click', closeInfoModal);
-document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeInfoModal(); });
-
-/* ============ PHYSICS (mirrors the Python implementation) ============ */
-const MEDIA = {
-  air:{name:'Air', n:1.00, color:'--air'},
-  water:{name:'Water', n:1.33, color:'--water'},
-  glass:{name:'Glass', n:1.52, color:'--glass'},
-  diamond:{name:'Diamond', n:2.42, color:'--diamond'},
-  custom:{name:'Custom', n:1.00, color:'--custom'}
-};
-function refract(n1, n2, incidenceDeg){
-  const iRad = incidenceDeg * Math.PI/180;
-  const ratio = (n1/n2) * Math.sin(iRad);
-  if (ratio >= 1) return {tir:true, refractionDeg:null};
-  const rRad = Math.asin(ratio);
-  return {tir:false, refractionDeg: rRad*180/Math.PI};
-}
-function cssColor(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
-
-/* ============ STATE ============ */
-const els = {
-  medium1: document.getElementById('medium1'),
-  medium2: document.getElementById('medium2'),
-  custom1wrap: document.getElementById('custom1-wrap'),
-  custom2wrap: document.getElementById('custom2-wrap'),
-  custom1: document.getElementById('custom1'),
-  custom2: document.getElementById('custom2'),
-  angle: document.getElementById('angle'),
-  angleVal: document.getElementById('angle-val'),
-  eqCalc: document.getElementById('eq-calc'),
-  statI: document.getElementById('stat-i'),
-  statR: document.getElementById('stat-r'),
-  statN1: document.getElementById('stat-n1'),
-  statN2: document.getElementById('stat-n2'),
-  explainText: document.getElementById('explain-text'),
-  tirBanner: document.getElementById('tir-banner'),
-};
-
-let target = { key1:'air', key2:'water', n1:1.00, n2:1.33, angle:30 };
-let display = { n1:1.00, n2:1.33, angle:30 };
-
-function currentN(key, customInput){
-  if (key === 'custom') return parseFloat(customInput.value) || 1.0;
-  return MEDIA[key].n;
-}
-
-function syncTargetFromInputs(){
-  target.key1 = els.medium1.value;
-  target.key2 = els.medium2.value;
-  target.n1 = currentN(target.key1, els.custom1);
-  target.n2 = currentN(target.key2, els.custom2);
-  target.angle = parseFloat(els.angle.value);
-  els.custom1wrap.classList.toggle('open', target.key1 === 'custom');
-  els.custom2wrap.classList.toggle('open', target.key2 === 'custom');
-}
-
-function setControls(m1, m2, angle){
-  els.medium1.value = m1; els.medium2.value = m2; els.angle.value = angle;
-  updateSliderTrack();
-  syncTargetFromInputs();
-}
-
-function updateSliderTrack(){
-  const pct = (els.angle.value / 89) * 100;
-  els.angle.style.setProperty('--pct', pct + '%');
-  els.angleVal.textContent = Math.round(els.angle.value) + '°';
-}
-
-els.medium1.addEventListener('change', syncTargetFromInputs);
-els.medium2.addEventListener('change', syncTargetFromInputs);
-els.custom1.addEventListener('input', syncTargetFromInputs);
-els.custom2.addEventListener('input', syncTargetFromInputs);
-els.angle.addEventListener('input', ()=>{ updateSliderTrack(); syncTargetFromInputs(); });
-
-document.querySelectorAll('.preset-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=> setControls(btn.dataset.m1, btn.dataset.m2, btn.dataset.angle));
-});
-document.getElementById('reset-btn').addEventListener('click', ()=> setControls('air','water',30));
-
-updateSliderTrack();
-syncTargetFromInputs();
-
-/* ============ TEXT PANELS ============ */
-function explanationFor(n1, n2, tir, mediaName1, mediaName2){
-  if (tir){
-    return `Light travelling from <strong>${mediaName1}</strong> into <strong>${mediaName2}</strong> hits the boundary steeper than the critical angle. There's no possible refraction angle that satisfies Snell's Law, so <strong>all</strong> of the light reflects back into ${mediaName1} — this is total internal reflection, the effect that keeps light trapped inside optical fibres and diamonds.`;
-  }
-  if (n2 > n1){
-    return `The light enters a <strong>denser</strong> medium (${mediaName2}, n=${n2.toFixed(2)}) from ${mediaName1} (n=${n1.toFixed(2)}). Its speed decreases, so the ray bends <strong>toward</strong> the normal.`;
-  } else if (n2 < n1){
-    return `The light enters a <strong>less dense</strong> medium (${mediaName2}, n=${n2.toFixed(2)}) from ${mediaName1} (n=${n1.toFixed(2)}). Its speed increases, so the ray bends <strong>away from</strong> the normal.`;
-  }
-  return `Both media have the same refractive index (n=${n1.toFixed(2)}), so the light's speed doesn't change and the ray passes straight through, undeviated.`;
-}
-
-function updatePanels(n1, n2, i, r, tir, name1, name2){
-  els.statI.textContent = i.toFixed(1) + '°';
-  els.statN1.textContent = n1.toFixed(2);
-  els.statN2.textContent = n2.toFixed(2);
-  if (tir){
-    els.statR.textContent = '—';
-    els.eqCalc.innerHTML = `<span class="val-incident">${n1.toFixed(2)} × sin(${i.toFixed(1)}°)</span> ≥ <span class="val-tir">${n2.toFixed(2)} × 1.00</span>`;
-    els.tirBanner.classList.add('show');
-  } else {
-    els.statR.textContent = r.toFixed(1) + '°';
-    els.eqCalc.innerHTML = `<span class="val-incident">${n1.toFixed(2)} × sin(${i.toFixed(1)}°)</span> = <span class="val-refracted">${n2.toFixed(2)} × sin(${r.toFixed(1)}°)</span>`;
-    els.tirBanner.classList.remove('show');
-  }
-  els.explainText.innerHTML = explanationFor(n1, n2, tir, name1, name2);
-}
-
-/* ============ RAY CANVAS ============ */
-const canvas = document.getElementById('ray-canvas');
-const ctx = canvas.getContext('2d');
-const vizWrap = document.getElementById('viz-wrap');
-let dpr = Math.max(1, window.devicePixelRatio || 1);
-
-function resizeCanvas(){
-  const rect = vizWrap.getBoundingClientRect();
-  dpr = Math.max(1, window.devicePixelRatio || 1);
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-}
-window.addEventListener('resize', resizeCanvas);
-new ResizeObserver(resizeCanvas).observe(vizWrap);
-
-// photon particles
-const photonsIn = Array.from({length:5},(_,i)=>({t:i/5, seg:'in'}));
-const photonsOut = Array.from({length:5},(_,i)=>({t:i/5, seg:'out'}));
-
-function lerp(a,b,t){ return a + (b-a)*t; }
-
-function drawScene(w,h,d){
-  ctx.clearRect(0,0,w,h);
-  const cx = w/2, cy = h/2;
-  const rayLen = Math.min(w,h) * 0.42;
-
-  const inkFaint = cssColor('--ink-faint');
-  const border = cssColor('--border');
-  const incidentColor = cssColor('--incident');
-  const refractedColor = cssColor('--refracted');
-  const tirColor = cssColor('--tir');
-  const c1 = cssColor(MEDIA[d.key1] ? MEDIA[d.key1].color : '--custom');
-  const c2 = cssColor(MEDIA[d.key2] ? MEDIA[d.key2].color : '--custom');
-
-  // media fill
-  const gradTop = ctx.createLinearGradient(0,0,0,cy);
-  gradTop.addColorStop(0, hexA(c1,0.10)); gradTop.addColorStop(1, hexA(c1,0.02));
-  ctx.fillStyle = gradTop; ctx.fillRect(0,0,w,cy);
-  const gradBot = ctx.createLinearGradient(0,cy,0,h);
-  gradBot.addColorStop(0, hexA(c2,0.12)); gradBot.addColorStop(1, hexA(c2,0.02));
-  ctx.fillStyle = gradBot; ctx.fillRect(0,cy,w,h-cy);
-
-  // boundary
-  ctx.strokeStyle = border; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke();
-
-  // normal (dashed)
-  ctx.save();
-  ctx.setLineDash([5,6]);
-  ctx.strokeStyle = inkFaint; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx, Math.max(10,cy-rayLen-20)); ctx.lineTo(cx, Math.min(h-10,cy+rayLen+20)); ctx.stroke();
-  ctx.restore();
-
-  // labels
-  ctx.font = '600 12px JetBrains Mono, monospace';
-  ctx.fillStyle = hexA(c1,0.9);
-  ctx.fillText(`${d.name1}  n=${d.n1.toFixed(2)}`, 14, 22);
-  ctx.fillStyle = hexA(c2,0.9);
-  ctx.fillText(`${d.name2}  n=${d.n2.toFixed(2)}`, 14, h-14);
-  ctx.fillStyle = inkFaint;
-  ctx.font = '500 10px JetBrains Mono, monospace';
-  ctx.fillText('NORMAL', cx+8, 16);
-
-  const iRad = d.angle * Math.PI/180;
-  const dxIn = Math.sin(iRad), dyIn = Math.cos(iRad);
-  const startIn = { x: cx - dxIn*rayLen, y: cy - dyIn*rayLen };
-
-  // incident ray
-  drawGlowLine(startIn.x, startIn.y, cx, cy, incidentColor, 2.4);
-
-  let endOut;
-  if (d.tir){
-    // reflected ray (prominent)
-    const rx = cx + dxIn*rayLen, ry = cy - dyIn*rayLen;
-    drawGlowLine(cx, cy, rx, ry, tirColor, 2.4);
-    endOut = {x:rx, y:ry};
-    drawArc(cx, cy, d.angle, -1, incidentColor, 'θ₁='+d.angle.toFixed(0)+'°', true);
-    drawArc(cx, cy, d.angle, 1, tirColor, 'θᵣ='+d.angle.toFixed(0)+'°', false);
-  } else {
-    // faint partial reflection
-    const rx = cx + dxIn*rayLen*0.55, ry = cy - dyIn*rayLen*0.55;
-    drawGlowLine(cx, cy, rx, ry, tirColor, 1, 0.18);
-    // refracted ray
-    const rRad = d.refractionDeg * Math.PI/180;
-    const dxOut = Math.sin(rRad), dyOut = Math.cos(rRad);
-    const ex = cx + dxOut*rayLen, ey = cy + dyOut*rayLen;
-    drawGlowLine(cx, cy, ex, ey, refractedColor, 2.4);
-    endOut = {x:ex, y:ey};
-    drawArc(cx, cy, d.angle, -1, incidentColor, 'θ₁='+d.angle.toFixed(0)+'°', true);
-    drawArc(cx, cy, d.refractionDeg, 1, refractedColor, 'θ₂='+d.refractionDeg.toFixed(0)+'°', false);
+    const refractionRad = Math.asin(ratio);
+    const refractionDeg = refractionRad * 180 / Math.PI;
+    return { tir: false, refractionDeg: refractionDeg };
   }
 
-  // boundary point glow
-  const pg = ctx.createRadialGradient(cx,cy,0,cx,cy,14);
-  pg.addColorStop(0, hexA(incidentColor,0.9)); pg.addColorStop(1, hexA(incidentColor,0));
-  ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fill();
+  /* =====================================================
+     GRAB THE HTML ELEMENTS WE NEED TO READ AND UPDATE
+  ===================================================== */
+  const medium1Select = document.getElementById("medium1");
+  const medium2Select = document.getElementById("medium2");
+  const angleSlider = document.getElementById("angle");
+  const angleValueLabel = document.getElementById("angleValue");
+  const equationDiv = document.getElementById("equation");
+  const explanationDiv = document.getElementById("explanation");
+  const tirWarning = document.getElementById("tirWarning");
+  const canvas = document.getElementById("rayCanvas");
+  const ctx = canvas.getContext("2d");
 
-  // photons along incident path
-  photonsIn.forEach(p=>{
-    const px = lerp(startIn.x, cx, p.t), py = lerp(startIn.y, cy, p.t);
-    drawPhoton(px,py,incidentColor);
-  });
-  photonsOut.forEach(p=>{
-    const px = lerp(cx, endOut.x, p.t), py = lerp(cy, endOut.y, p.t);
-    drawPhoton(px,py, d.tir ? tirColor : refractedColor);
-  });
+  /* =====================================================
+     MAIN UPDATE FUNCTION
+     Runs every time the user changes a control.
+     1. Reads the current inputs
+     2. Calculates the refraction
+     3. Updates the text panels
+     4. Redraws the ray diagram
+  ===================================================== */
+  function update() {
+    const n1 = parseFloat(medium1Select.value);
+    const n2 = parseFloat(medium2Select.value);
+    const angle = parseFloat(angleSlider.value);
 
-  function drawGlowLine(x1,y1,x2,y2,color,width,alpha){
-    ctx.save();
-    ctx.globalAlpha = alpha === undefined ? 1 : alpha;
-    ctx.shadowColor = color; ctx.shadowBlur = 16;
-    ctx.strokeStyle = color; ctx.lineWidth = width;
-    ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-    ctx.restore();
+    angleValueLabel.textContent = angle + "°";
+
+    const result = calculateRefraction(n1, n2, angle);
+
+    updateEquationText(n1, n2, angle, result);
+    updateExplanationText(n1, n2, result);
+    drawRayDiagram(n1, n2, angle, result);
   }
-  function drawPhoton(x,y,color){
-    ctx.save();
-    const grad = ctx.createRadialGradient(x,y,0,x,y,5);
-    grad.addColorStop(0, hexA(color,1)); grad.addColorStop(1, hexA(color,0));
-    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill();
-    ctx.restore();
+
+  function updateEquationText(n1, n2, angle, result) {
+    if (result.tir) {
+      equationDiv.textContent =
+        n1.toFixed(2) + " × sin(" + angle.toFixed(0) + "°) ≥ " + n2.toFixed(2) + " × 1.00  →  no solution for θ₂";
+      tirWarning.style.display = "block";
+    } else {
+      equationDiv.textContent =
+        n1.toFixed(2) + " × sin(" + angle.toFixed(0) + "°) = " +
+        n2.toFixed(2) + " × sin(" + result.refractionDeg.toFixed(2) + "°)";
+      tirWarning.style.display = "none";
+    }
   }
-  function drawArc(x,y,deg,side,color,label,above){
-    const rad = deg*Math.PI/180;
-    const R = 34;
-    ctx.save();
-    ctx.strokeStyle = hexA(color,0.85); ctx.lineWidth = 1.6;
-    const a0 = above ? -Math.PI/2 : Math.PI/2;
-    const a1 = above ? -Math.PI/2 + side*rad*-1 : Math.PI/2 + side*rad;
-    // compute start/end angles relative to vertical normal, on correct side
-    const start = above ? -Math.PI/2 : Math.PI/2;
-    const sweep = side * rad;
+
+  function updateExplanationText(n1, n2, result) {
+    if (result.tir) {
+      explanationDiv.textContent =
+        "The light is going into a less dense medium at too steep an angle. " +
+        "Snell's Law has no valid solution, so all of the light reflects back " +
+        "instead of refracting through. This is Total Internal Reflection.";
+    } else if (n2 > n1) {
+      explanationDiv.textContent =
+        "The light enters a denser medium, so it slows down and bends TOWARD the normal line.";
+    } else if (n2 < n1) {
+      explanationDiv.textContent =
+        "The light enters a less dense medium, so it speeds up and bends AWAY from the normal line.";
+    } else {
+      explanationDiv.textContent =
+        "Both media have the same refractive index, so the light passes straight through with no bending.";
+    }
+  }
+
+  /* =====================================================
+     DRAWING THE RAY DIAGRAM ON THE CANVAS
+     This is simplified: no smooth animation loop,
+     it just redraws once every time something changes.
+  ===================================================== */
+  function drawRayDiagram(n1, n2, angle, result) {
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const rayLength = 140;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Boundary line (horizontal, splits the two media)
+    ctx.strokeStyle = "#2a2d42";
     ctx.beginPath();
-    ctx.arc(x,y,R, start, start - sweep, sweep>0 ? true : false );
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(width, centerY);
+    ctx.stroke();
+
+    // Normal line (dashed, vertical)
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "#555a77";
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY - rayLength - 20);
+    ctx.lineTo(centerX, centerY + rayLength + 20);
     ctx.stroke();
     ctx.restore();
-    ctx.font = '600 11px JetBrains Mono, monospace';
-    ctx.fillStyle = hexA(color,0.95);
-    const midAngle = start - sweep/2;
-    const lx = x + Math.cos(midAngle)*(R+26);
-    const ly = y + Math.sin(midAngle)*(R+26);
-    ctx.textAlign = 'center';
-    ctx.fillText(label, lx, ly);
-    ctx.textAlign = 'left';
-  }
-}
-function hexA(hex, alpha){
-  hex = hex.trim();
-  if (hex.startsWith('#')){
-    let c = hex.substring(1);
-    if (c.length===3) c = c.split('').map(x=>x+x).join('');
-    const r = parseInt(c.substring(0,2),16), g = parseInt(c.substring(2,4),16), b = parseInt(c.substring(4,6),16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-  return hex;
-}
 
-/* ============ ANIMATION LOOP ============ */
-let lastTime = performance.now();
-function tick(now){
-  const dt = Math.min(0.05, (now-lastTime)/1000);
-  lastTime = now;
-  const ease = reduceMotion ? 1 : Math.min(1, dt*7);
+    // Incident ray: comes from top-left, hits the center point
+    const angleRad = angle * Math.PI / 180;
+    const startX = centerX - Math.sin(angleRad) * rayLength;
+    const startY = centerY - Math.cos(angleRad) * rayLength;
+    drawLine(startX, startY, centerX, centerY, "#ff5b54");
 
-  display.n1 = lerp(display.n1, target.n1, ease);
-  display.n2 = lerp(display.n2, target.n2, ease);
-  display.angle = lerp(display.angle, target.angle, ease);
+    if (result.tir) {
+      // Reflected ray: bounces back up on the same side
+      const endX = centerX + Math.sin(angleRad) * rayLength;
+      const endY = centerY - Math.cos(angleRad) * rayLength;
+      drawLine(centerX, centerY, endX, endY, "#ffb84d");
+    } else {
+      // Refracted ray: continues down into medium 2 at the new angle
+      const refractionRad = result.refractionDeg * Math.PI / 180;
+      const endX = centerX + Math.sin(refractionRad) * rayLength;
+      const endY = centerY + Math.cos(refractionRad) * rayLength;
+      drawLine(centerX, centerY, endX, endY, "#5b8cff");
+    }
 
-  const res = refract(display.n1, display.n2, display.angle);
-  const rect = vizWrap.getBoundingClientRect();
-
-  drawScene(rect.width, rect.height, {
-    n1: display.n1, n2: display.n2, angle: display.angle,
-    tir: res.tir, refractionDeg: res.refractionDeg,
-    key1: target.key1, key2: target.key2,
-    name1: MEDIA[target.key1] ? MEDIA[target.key1].name : 'Custom',
-    name2: MEDIA[target.key2] ? MEDIA[target.key2].name : 'Custom',
-  });
-
-  updatePanels(display.n1, display.n2, display.angle, res.refractionDeg, res.tir,
-    MEDIA[target.key1] ? MEDIA[target.key1].name : 'Custom',
-    MEDIA[target.key2] ? MEDIA[target.key2].name : 'Custom');
-
-  // photon movement
-  const speed = 0.5;
-  photonsIn.forEach(p=>{ p.t += dt*speed; if(p.t>1) p.t-=1; });
-  photonsOut.forEach(p=>{ p.t += dt*speed; if(p.t>1) p.t-=1; });
-
-  requestAnimationFrame(tick);
-}
-resizeCanvas();
-requestAnimationFrame(tick);
-
-/* ============ FULLSCREEN ============ */
-document.getElementById('fullscreen-btn').addEventListener('click', ()=>{
-  const panel = document.getElementById('viz');
-  if (!document.fullscreenElement){
-    (panel.requestFullscreen || panel.webkitRequestFullscreen || function(){}).call(panel);
-  } else {
-    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
-  }
-});
-document.addEventListener('fullscreenchange', resizeCanvas);
-
-/* ============ EXPORT PNG ============ */
-document.getElementById('export-btn').addEventListener('click', ()=>{
-  const rect = vizWrap.getBoundingClientRect();
-  const exportW = rect.width*2, exportH = rect.height*2 + 90;
-  const off = document.createElement('canvas');
-  off.width = exportW; off.height = exportH;
-  const octx = off.getContext('2d');
-  octx.fillStyle = cssColor('--void'); octx.fillRect(0,0,exportW,exportH);
-  octx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, exportW, exportH-90);
-  octx.fillStyle = cssColor('--ink');
-  octx.font = '600 26px JetBrains Mono, monospace';
-  octx.fillText(els.eqCalc.textContent.replace(/[×]/g,'x'), 30, exportH-40);
-  octx.fillStyle = cssColor('--ink-faint');
-  octx.font = '500 16px JetBrains Mono, monospace';
-  octx.fillText('PhotonLab — Snell\u2019s Law Simulator', 30, exportH-14);
-  const link = document.createElement('a');
-  link.download = 'photonlab-refraction.png';
-  link.href = off.toDataURL('image/png');
-  link.click();
-});
-
-/* ============ HERO CANVAS: mesh + particles + beam ============ */
-const heroCanvas = document.getElementById('hero-canvas');
-const hctx = heroCanvas.getContext('2d');
-let hw=0, hh=0;
-function resizeHero(){
-  const rect = heroCanvas.parentElement.getBoundingClientRect();
-  const d = Math.max(1, window.devicePixelRatio||1);
-  hw = rect.width; hh = rect.height;
-  heroCanvas.width = hw*d; heroCanvas.height = hh*d;
-  heroCanvas.style.width = hw+'px'; heroCanvas.style.height = hh+'px';
-  hctx.setTransform(d,0,0,d,0,0);
-}
-window.addEventListener('resize', resizeHero);
-resizeHero();
-
-const particles = Array.from({length: reduceMotion?0:60},()=>({
-  x: Math.random(), y: Math.random(), r: Math.random()*1.6+0.4,
-  vx: (Math.random()-0.5)*0.008, vy: (Math.random()-0.5)*0.008,
-  a: Math.random()*0.5+0.15
-}));
-
-let heroT = 0;
-function drawHero(now){
-  heroT = now/1000;
-  hctx.clearRect(0,0,hw,hh);
-
-  // gradient mesh
-  const blobs = [
-    {x:0.25+Math.sin(heroT*0.05)*0.08, y:0.35+Math.cos(heroT*0.04)*0.06, r:0.55, c:cssColor('--refracted'), a:0.20},
-    {x:0.75+Math.cos(heroT*0.045)*0.08, y:0.65+Math.sin(heroT*0.05)*0.07, r:0.5, c:cssColor('--incident'), a:0.16},
-    {x:0.5+Math.sin(heroT*0.03)*0.1, y:0.2, r:0.4, c:cssColor('--tir'), a:0.08},
-  ];
-  blobs.forEach(b=>{
-    const cx = b.x*hw, cy = b.y*hh, r = b.r*Math.max(hw,hh);
-    const g = hctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    g.addColorStop(0, hexA(b.c,b.a)); g.addColorStop(1, hexA(b.c,0));
-    hctx.fillStyle = g; hctx.fillRect(0,0,hw,hh);
-  });
-
-  // particles
-  particles.forEach(p=>{
-    p.x += p.vx; p.y += p.vy;
-    if (p.x<0) p.x=1; if (p.x>1) p.x=0; if (p.y<0) p.y=1; if (p.y>1) p.y=0;
-    hctx.fillStyle = hexA(cssColor('--ink'), p.a*0.5);
-    hctx.beginPath(); hctx.arc(p.x*hw, p.y*hh, p.r, 0, Math.PI*2); hctx.fill();
-  });
-
-  // sweeping bending beam (signature)
-  if (!reduceMotion){
-    const cycle = 6.5;
-    const tt = (heroT % cycle)/cycle;
-    const ease = tt<0.5 ? 2*tt*tt : 1-Math.pow(-2*tt+2,2)/2;
-    const bendX = hw*0.5, bendY = hh*0.52;
-    const startX = -hw*0.1, startY = hh*(0.15+ease*0.05);
-    const endX = hw*1.1, endY = hh*(0.85-ease*0.05);
-    const opacity = Math.sin(tt*Math.PI);
-    drawHeroLine(startX,startY,bendX,bendY, cssColor('--incident'), opacity*0.8);
-    drawHeroLine(bendX,bendY,endX,endY, cssColor('--refracted'), opacity*0.8);
-    // photon on beam
-    const segT = (tt*2)%1;
-    let px,py;
-    if (tt<0.5){ px=lerp(startX,bendX,segT); py=lerp(startY,bendY,segT); }
-    else { px=lerp(bendX,endX,segT); py=lerp(bendY,endY,segT); }
-    const g = hctx.createRadialGradient(px,py,0,px,py,8);
-    g.addColorStop(0, hexA(cssColor('--ink'),opacity)); g.addColorStop(1, hexA(cssColor('--ink'),0));
-    hctx.fillStyle = g; hctx.beginPath(); hctx.arc(px,py,8,0,Math.PI*2); hctx.fill();
+    // Labels
+    ctx.fillStyle = "#9ba3c9";
+    ctx.font = "12px monospace";
+    ctx.fillText("Medium 1  n=" + n1.toFixed(2), 10, 18);
+    ctx.fillText("Medium 2  n=" + n2.toFixed(2), 10, height - 10);
   }
 
-  requestAnimationFrame(drawHero);
-}
-function drawHeroLine(x1,y1,x2,y2,color,alpha){
-  hctx.save();
-  hctx.globalAlpha = alpha;
-  hctx.shadowColor = color; hctx.shadowBlur = 20;
-  hctx.strokeStyle = color; hctx.lineWidth = 2;
-  hctx.lineCap='round';
-  hctx.beginPath(); hctx.moveTo(x1,y1); hctx.lineTo(x2,y2); hctx.stroke();
-  hctx.restore();
-}
-requestAnimationFrame(drawHero);
+  function drawLine(x1, y1, x2, y2, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
 
-})();
+  /* =====================================================
+     PRESET BUTTONS
+     Sets both dropdowns and the slider, then updates.
+  ===================================================== */
+  function setPreset(n1, n2, angle) {
+    medium1Select.value = n1.toFixed(2);
+    medium2Select.value = n2.toFixed(2);
+    angleSlider.value = angle;
+    update();
+  }
+
+  /* =====================================================
+     EVENT LISTENERS
+     Whenever a control changes, run update().
+  ===================================================== */
+  medium1Select.addEventListener("change", update);
+  medium2Select.addEventListener("change", update);
+  angleSlider.addEventListener("input", update);
+
+  // Run once on page load so the diagram isn't blank
+  update();
 </script>
+
 </body>
 </html>
